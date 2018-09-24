@@ -1,0 +1,38 @@
+Notes and shit
+2/8/2018
+
+
+Arrays of Pointers
+ex:
+char word[N] // defines an array of N many elements
+char * w[N] // Defines an array of pointers, with the *, this is a one dimensional array
+w[i] = (char*) calloc(strlen(word)+1, sizeOfChar) // Calloc does the same as malloc excepts initializes values to 0
+
+
+Ex code:
+
+char *names[MAX]
+names[0] = "tom smith";
+names[1] = "Xinli Wang";
+names[2] = "Paul Leidig";
+
+int i;
+for (i = 0; i < MAX; ++i)
+	printf("Value of names[%d] is: %s" //etc)
+
+
+
+
+// This following programs shows what the program stores in argv when you put in extra args, such as .\a.out 1 2 3 b c d
+int main(int argc, char *argv[])
+{
+	int i;
+	printf("argc = %d\n", argc);
+	for(i = 0; i <argc; i++)
+		printf("argv[%d] = %s\n", i, argv[i]);
+	return 0;
+
+// 
+
+
+

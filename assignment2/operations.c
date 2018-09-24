@@ -1,0 +1,290 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#define N 20
+#define stats 5
+struct product
+{
+  char name[N];
+  float quantityValue;
+  char quantityUnit[N];
+  float priceValue;
+  char priceUnit[N];
+  struct product *next;
+};
+typedef struct product product;
+product * findItem(product *p, char pName[]);
+
+/*AddProduct takes the head and prompts for a name
+ *if that product already exists it +1's the quantity,
+ *else they create that product.
+ */
+int addProduct(product *head){
+  char str[N];
+  float flo;
+  printf("\nName of product    :");
+  scanf("%s", str);
+  product *newNode = NULL;
+  if((findItem(head, str))->name != NULL){
+    (findItem(head,str))->quantityValue++;
+    printf("Quantity increased by 1");
+    return 1;
+  }
+  newNode = malloc(sizeof(product));
+  if (newNode == NULL){
+    return 2;
+  }
+  strncpy(newNode->name, str, N);
+
+  printf("Price of product   :");
+  scanf("%f", &(newNode->priceValue));
+
+  printf("Unit of price      :");
+  scanf("%s", str);
+  strncpy(newNode->priceUnit, str, N);
+
+  printf("Quantity of product:");
+  scanf("%f", &(newNode->quantityValue));
+
+  printf("Quantity unit      :");
+  scanf("%s", str);
+  strncpy(newNode->quantityUnit, str, N);
+
+  insert(head, newNode);
+  return 0;
+}
+
+//Inserts node to linked list. p is spot, node is node to be added to list
+int insert(product *p, product *node){
+  if(p->next != NULL)
+    insert(p->next, node);
+  else{
+    p->next = node;
+    node->next = NULL;
+  }
+  return 0;
+}
+
+//Removes item from list *node is item to be removed.
+int rmItem(product *p, product *node){
+  if(p->next == NULL){
+    printf("\nItem does not exist in inventory.");
+    return 1;
+  }
+  else if(p->next != node){
+    rmItem(p->next, node);
+  }
+  else if(p->next == node){
+    p->next = node->next;
+    free(node);
+    printf("\nItem deleted.");
+  }
+  return 0;
+}
+
+//Loads file.
+int loadData(char inf[], product **p){
+  char *tempArr;
+  //  char *pInfo;
+  FILE *fp;
+  int i = 0;
+  int j = 0;
+  int k = 0;
+  char c;
+  int size;
+  product *newNode;
+  product *tempNode;
+  fp = fopen("data.dat", "r");
+  if(fp == NULL){
+    return-1;
+  }
+
+  //Allocates memory and puts chars from file into tempArr
+  tempArr = malloc(sizeof(fp) * sizeof(char)+200);
+  while(fscanf(fp, "%c", &c) != EOF){
+    tempArr[i] = c;
+    i++;
+  }
+  size = i;
+  if(size < 4){
+    return -1;
+  }
+  newNode = *p;
+  for(i = 0; i < size; i++){
+    if(tempArr[i] == '\n'){
+      char pInfo[j+1];
+      pInfo[j] = '\0';
+      int x;
+      int z = 0;
+
+      //create new array for product info
+      for(x = i-j; x < i; x++){
+	pInfo[z] = tempArr[x];
+	z++;
+      }
+      if(k == 0){
+	tempNode = newNode;
+	newNode = malloc(sizeof(product));
+	if(newNode == NULL){
+	  printf("Error in malloc");
+	  return 3;
+	}
+	tempNode->next = newNode;
+	
+	strncpy(newNode->name, pInfo, N);
+	k++;
+      }
+      else if(k == 1){
+	//	printf("\n at 1 pInfo is:%s", pInfo);
+	newNode->quantityValue = atof(pInfo);
+	k++;
+      }
+      else if(k == 2){
+	strncpy(newNode->quantityUnit, pInfo, N);
+	k++;
+      }
+      else if(k == 3){
+	newNode->priceValue = atof(pInfo);
+	k++;
+      }
+      else if(k == 4){
+	strncpy(newNode->priceUnit, pInfo, N);
+	k = 0;
+      }
+      
+      j = -1;
+    }
+    j++;
+  }
+  product *tempNode2 = *p;
+  *p = tempNode2->next;
+  free(tempNode2);
+  free(tempArr);
+  //free(pInfo);
+  //printf("%s", tempArr);
+  return 1;
+}
+
+/*Save files saves the inventory list to data.dat
+ */
+int saveData(FILE *fp, product *p){
+  //FILE *fp;
+  // fp = fopen(outf, "w");
+  fputs(p->name, fp);
+  fputs("\n", fp);
+  fprintf(fp, "%0.2f", p->quantityValue);
+  fputs("\n", fp);
+  fputs(p->quantityUnit, fp);
+  fputs("\n", fp);
+  fprintf(fp, "%0.2f", p->priceValue);
+  fputs("\n", fp);
+  fputs(p->priceUnit, fp);
+  fputs("\n", fp);
+  if(p->next != NULL){
+    saveData(fp, p->next);
+  }
+  free(p);
+  return 0;
+}
+
+//Deletes each node and free's all the memory
+int deleteList(product *head){
+  if(head->next != NULL){
+    deleteList(head->next);
+  }
+  free(head);
+  return 0;
+}
+
+/*Purchase item adds money to the till and removes 1 from quantity.
+ */
+float purchaseItem(product *head, char pName[], float *q){
+  product *p;
+  p = findItem(head, pName);
+  if(p->name != NULL){
+    if(p->quantityValue > 0){
+      *q += p->priceValue;
+      p->quantityValue -= 1;
+      printf("\n%s sold for %0.2f %s\n", p->name, p->priceValue, p->priceUnit);
+    }
+    else{
+      printf("\nQuantity of product is below 1.\n");
+      
+    }
+  }
+  else{
+    printf("\nUnable to find item in store.\n");
+  }
+  
+}
+
+/*checkPrice finds a product and prints the price of it.
+ */
+void checkPrice(product *p, char pName[]){
+  product *checkedItem;
+  checkedItem = findItem(p, pName);
+  if(checkedItem->name != NULL){
+  printf("Product %s\nPrice:%0.2f %s\n", checkedItem->name, checkedItem->priceValue, checkedItem->priceUnit);
+  }
+  else{
+    printf("\nUnable to find product in store.\n");
+  }
+  return;
+}
+
+/*Finds the item on the list given a name.
+ */
+product * findItem(product *p, char pName[]){
+  if(strcmp(pName, p->name) == 0){
+    return p;
+  }
+  else if(p->next != NULL){
+    return findItem(p->next, pName);
+  }
+  else
+    return;
+}
+
+
+/*Takes product and prints out the information about it.
+ */
+void printProduct(product *p){
+  printf("Product:%s\n", p->name);
+  printf("Quantity:%f %s\n", p->quantityValue, p->quantityUnit);
+  printf("Price:%0.2f %s\n", p->priceValue, p->priceUnit);
+}
+
+/*Storeproducts recursively calls printproduct to display each product.
+ */
+void storeProducts(product *head){
+  printProduct(head);
+  printf("\n");
+  if(head->next != NULL){
+    storeProducts(head->next);
+  }
+  return;
+}
+
+/*productInfo finds a product and prints it.
+ */
+void productInfo(product *head, char pName[]){
+  product *p;
+  p = findItem(head, pName);
+  if(p->name != NULL){
+    printProduct(p);
+  }
+  else{
+    printf("\nUnable to find product in store.\n");
+  }
+  return;
+}
+
+/*Inventory is the same as storeProducts but also shows till.
+ */
+void inventory(product *head, float *till){
+  printf("\nMoney made from sales is: %0.2f\n", *till);
+  printf("-----Store Products-----\n");
+  storeProducts(head);
+  return;
+}

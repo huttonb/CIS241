@@ -1,0 +1,184 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <sys/stat.h>
+
+int targetFound(char charArray[], int num, char target);
+
+char* createEncryptArray(char word[]){
+  int length = strlen(word);
+  int i;
+  int c;
+  int g;
+  int repeat;
+  char* newWord;
+  int removedChars = 0;
+  char startChar = 'A';
+  char swapChar;
+  newWord = (char*)malloc(27 * sizeof(char));
+  for(i = 0; i < 26; i++){
+    newWord[i] = startChar;
+    startChar++;
+  }
+  for(i = 0; i < length; i++){
+    for(g = i+1; g < length; g++){
+      if(word[i] == word[g] && word[i] != ' '){
+      //If the target is found it shifts every letter after it one to the left.
+	for(c = g; c < length; c++){
+	  word[length] = ' ';
+	  word[c] = word[c+1];
+	}
+	removedChars++;
+	g--;
+      }
+    }
+  }
+  //Same as before but check for repeats from the cleaned word array with the
+  // newWord array.
+  for(i = 0; i < length; i++){
+    for(g = 0; g < 26; g++){
+      if(word[i] == newWord[g] && word[i] != ' '){
+	for(c = g; c < 26; c++){
+	  newWord[26] = ' ';
+	  newWord[c] = newWord[c+1];
+	  
+	}
+      }
+    }
+  }
+  //This forloop reverses the alphabet array newWord, so that it goes from Z to A
+  for(i = 0; i < 13; i++){
+    swapChar = newWord[i];
+    newWord[i] = newWord[26-i-1];
+    newWord[26-i-1] = swapChar;
+  }
+  for(i = 0; i < (length - removedChars); i++){
+    newWord[i] = word[i];
+  }
+  newWord[26] = '\0';
+  return newWord;
+
+}
+
+int targetFound(char charArray[], int num, char target){
+  int i;
+  for(i = 0; i < num; i++){
+    if(charArray[i] == target)
+      return i;
+  }
+
+  return 0;
+}
+
+void encryptMessage(char key[], char encrypt[], int size){
+  
+  int eLength = size;
+  //Not really but 27th char is /0
+  int kLength = 26;
+  int i;
+  int charNum;
+  for(i = 0; i < eLength; i++){
+    if(isalpha(encrypt[i])){
+	charNum = (encrypt[i] - 'A');
+	printf("\ncharNum: %i    char = %c", charNum, encrypt[i]);
+	encrypt[i] = key[charNum];
+      }   
+  }
+  printf("\n %s ---new message", encrypt);
+  return;
+}
+
+void decryptMessage(char key[], char decrypt[], int size){
+  int dLength = size;
+  int kLength = 26;
+  int i;
+  char charNum;
+  printf("\n %s ---Decrypt Message", decrypt);
+  for(i = 0; i < dLength; i++){
+    if(isalpha(decrypt[i])){
+      charNum = (targetFound(key, 26, decrypt[i])+'A');
+	printf("\ncharNum: %c    char= %c", charNum, decrypt[i]);
+	decrypt[i] = charNum;
+      }
+
+  }
+
+}
+
+void processInput(char* inf, char* outf, char *table, char crypt){
+  char *message1;
+  int i = 0;
+  FILE *fp;
+  char c;
+  int size;
+
+  fp = fopen(inf, "r");
+  if (fp == NULL){
+    printf("File could not be opened");
+    return;
+  }
+  message1 = malloc(sizeof(fp) * sizeof(char));
+  while(fscanf(fp, "%c", &c) != EOF){
+    message1[i] = c;
+    i++;
+  }
+  message1[i] = '\n';
+
+    while(message1[i]){
+    if(isalpha(message1[i]))
+      message1[i] =(toupper(message1[i]));
+    else
+      message1[i] = ' ';
+    i++;
+  }  
+  size = i;
+  i = 0;
+  
+  if(crypt == 'e'){
+    encryptMessage(table, message1, size);
+    printf("\n------AFter encrypt message is: %s ", message1);
+  }
+  else if(crypt == 'd'){
+    decryptMessage(table, message1, size);
+  }
+  return;
+  write_file(outf, message1, 0);
+  free(message1);
+  fclose(fp);
+  return;
+  
+}
+/*read_file takes a filename, as well as a pointer to a string,
+ * it then reads a file and puts the contents of the file into the string.
+ */
+int read_file(char* filename, char **buffer1){
+  char* buffer = *buffer1;
+
+	return 0;
+}
+
+/*write_file takes a size, a string, and a file name, then writes the
+ * string to the filename.
+ */
+int write_file(char* filename, char *buffer, int size){
+	FILE *fp;
+	fp = fopen(filename, "w");
+	fputs(buffer, fp);
+	fclose(fp);
+	return 0;
+}
+
+//file_size takes the pointer to the file name, declares it as a constant,
+//And finds the size of the file in Bytes.
+//Code is from :https://stackoverflow.com/questions/8236/how-do-you-determine-the-size-of-a-file-in-c
+//With minor modifications.
+int file_size(const char *fileName){
+  return 0;
+	struct stat st;
+
+	if(stat(fileName, &st) == 0)
+		return st.st_size;
+	return -1;
+}
+

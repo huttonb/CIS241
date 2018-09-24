@@ -1,0 +1,18 @@
+awk and gawk:
+a text processing utility
+programmable
+report generation
+gawk [-F seperator] 'pattern {action}' filenmaes
+
+sed:
+a stream editing utility
+commands include delete, append, insert, substitute, and print
+sed [-option] 'command' filenames
+both edit in a non-interactive way
+
+Select lines
+display lines that contain "pattern"
+	sed -n'/pattern/p' myfile
+
+replace text
+	sed 's/\/cs\//\/cis\//g' myfile

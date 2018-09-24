@@ -1,0 +1,9 @@
+cat = concatanate, read contents of files out, pipe into new file
+ls = list
+cd = change
+grep = basically search
+echo = prints stuff
+$PATH = echo $PATH prints out contents of path, same with $SHELL
+| = pipe. ls | grep n    searches ls for 'n'
+who = who's on the machine, I'm pretty sure. 
+wc = word, newline, byte count.
